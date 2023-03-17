@@ -1,0 +1,14 @@
+FROM php:8.1-apache
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl git vim libpng-dev libcurl4-openssl-dev sudo zip cron wget default-mysql-client zlib1g-dev libzip-dev libicu-dev g++
+RUN docker-php-ext-configure intl && docker-php-ext-install mysqli pdo pdo_mysql curl intl bcmath zip
+
+COPY ./config/000-default.conf /etc/apache2/sites-enabled/000-default.conf
+
+RUN a2enmod rewrite
+RUN a2enmod vhost_alias
+
+RUN /usr/sbin/apachectl restart
+
+WORKDIR /var/www/html

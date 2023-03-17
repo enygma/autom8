@@ -1,0 +1,12 @@
+version: '2'
+
+services:
+  web:
+    image: autom8-web
+    container_name: autom8-web
+    restart: always
+    build: .
+    ports:
+        - "8080:80"
+    volumes:
+        - ../code:/var/www/html:delegated

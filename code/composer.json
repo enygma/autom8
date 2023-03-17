@@ -1,0 +1,13 @@
+{
+    "require": {
+        "vlucas/phpdotenv": "^5.5",
+        "slim/slim": "^4.11",
+        "slim/psr7": "^1.6",
+        "php-di/php-di": "^7.0",
+        "php-di/slim-bridge": "^3.3",
+        "aura/session": "^2.1",
+        "league/event": "^3.0",
+        "guzzlehttp/guzzle": "^7.5",
+        "monolog/monolog": "^3.3"
+    }
+}
