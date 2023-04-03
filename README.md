@@ -38,4 +38,30 @@ When a project item is reordered
 Then comment on the item "hi there!"
 ```
 
+OR 
+
+```
+Given a comment is made on an item
+Where the body contains "foo"
+Then comment on the item "I see you!"
+```
+
 Then, every time an item is moved, it will receive a comment. These events are stored in the "events" directory of your choosing (as defined in the `.env` file).
+
+> NOTE: Be careful when defining your events as you could accidentally create a never-ending cycle. For example: if you have an event that fires on every comment and replies with a comment, then when the reply comment is made it will kick off the same event and make a another comment and so on...
+
+### Adding functionality
+
+The Autom8 tool comes with a basic set of matches defined. These matches are defined in the comments for methods in the `App/Context.php` file. The `MATCH` attribute in the comment is used to define the regular expression to match the statement. For example, this comment would match `Where the body contains "foo"`:
+
+```
+/**
+* MATCH: /Where the body contains "(.*?)"/
+*/
+```
+
+...on the `whereCommentBodyContains` method in the `Context` class. The request is then handled inside this method, checking the body content of the incoming payload to see if the comment `comment.body` value contains the string "foo". These methods should return `true` if the criteria are matched and `false` if not. Whenever the first `false` is received for the statements in an event definition, that event processing will be cancelled and Autom8 will move on to other events.
+
+### Resources
+
+More information about the Github webhook events and payloads from be found [on this page in the GitHub docs site](https://docs.github.com/en/webhooks-and-events/webhooks/webhook-events-and-payloads).
