@@ -130,23 +130,35 @@ class Context
     }
 
     /**
-     * MATCH: /When a comment is made on an item( containing "(.+?)")?/
+     * MATCH: /Given a comment is made on an item/
      * TYPE: issue_comment.created
      */
     public function whenCommentIsMadeOnItem($payload, $matches)
     {
         $this->container->get('logger')->info('HANDLER: whenCommentIsMadeOnItem');
-
-        // If defined, see if the search string is in the body of the comment
-        if (!empty($matches[2])) {
-            if (str_contains($payload->comment->body, $matches[2]) == false){
-                $this->container->get('logger')->info('Search string not found in comment body', ['string' => $matches[2]]);
-                return false;
-            }
-        }
         
         // Push the item into the context if everything goes well
         $this->context['item'] = $this->getItem($payload->issue->node_id);
+        return true;
+    }
+
+    /**
+     * MATCH: /Where the body contains "(.*?)"/
+     * TYPE: issue_comment.created
+     */
+    public function whereCommentBodyContains($payload, $matches)
+    {
+        $this->container->get('logger')->info('HANDLER: whereCommentBodyContains');
+
+        // If defined, see if the search string is in the body of the comment
+        if (!empty($matches[1])) {
+            if (str_contains($payload->comment->body, $matches[1]) == false){
+                $this->container->get('logger')->info('Search string not found in comment body', ['string' => $matches[1]]);
+                return false;
+            } else {
+                $this->container->get('logger')->info('Search string FOUND in comment body', ['string' => $matches[1]]);
+            }
+        }
         return true;
     }
 
