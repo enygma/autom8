@@ -13,7 +13,7 @@ class MakeComment
 
     public function handle($payload, $config)
     {
-        error_log('[ACTION] MakeComment::handle'."\n", 3, '/tmp/php.log');
+        $this->container->get('logger')->info('[ACTION] MakeComment::handle');
 
         if (empty($config['comment'])) {
             throw new \Exception('No comment provided');
@@ -24,7 +24,7 @@ class MakeComment
                 addComment(
                     input: {
                         clientMutationId: "1"
-                        subjectId: "'.$payload->id.'"
+                        subjectId: "'.$config['item']->id.'"
                         body: "'.$config['comment'].'"
                     }
                 ) {

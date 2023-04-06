@@ -10,6 +10,7 @@ class Context
         '__construct',
         'build',
         'getItem',
+        'getProject',
         'buildMatchList'
     ];
 
@@ -95,10 +96,52 @@ class Context
         return $results->data->node;
     }
 
+    private function getProject($nodeId)
+    {
+        $query = '
+            query {
+                node(id: "'.$nodeId.'") {
+                    ... on ProjectV2 {
+                        id
+                        title
+                        number,
+                        fields(first: 100) {
+                            edges {
+                                node {
+                                    ... on ProjectV2Field {
+                                        id
+                                        name
+                                        dataType
+                                    }
+                                    ... on ProjectV2IterationField {
+                                        id
+                                        name
+                                        dataType
+                                    }
+                                    ... on ProjectV2SingleSelectField {
+                                        id
+                                        name
+                                        dataType
+                                        options {
+                                            id
+                                            name
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ';
+        $results = $this->container->get('api_client')->runQuery($query);
+        return $results->data->node;
+    }
+
     //--------------------------------------------------------------------------------
     
     /**
-     * MATCH: /When a project item is reordered/
+     * MATCH: /Given that a project item is reordered/
      * TYPE: projects_v2_item.reordered
      */
     public function projectItemIsReordered($payload, $matches)
@@ -107,6 +150,9 @@ class Context
 
         // Push the item into the context
         $this->context['item'] = $this->getItem($payload->projects_v2_item->content_node_id);
+
+        // Push the project into the context
+        $this->context['project'] = $this->getProject($payload->projects_v2_item->project_node_id);
         return true;
     }
 
@@ -123,17 +169,18 @@ class Context
         }
 
         $action = new \App\Action\MakeComment($this->container);
-        $action->handle($this->context['item'], [
+        $action->handle($payload, [
+            'item' => $this->context['item'],
             'comment' => $matches[1]
         ]);
         return true;
     }
 
     /**
-     * MATCH: /Given a comment is made on an item/
+     * MATCH: /Given that a comment is made on an item/
      * TYPE: issue_comment.created
      */
-    public function whenCommentIsMadeOnItem($payload, $matches)
+    public function givenCommentIsMadeOnItem($payload, $matches)
     {
         $this->container->get('logger')->info('HANDLER: whenCommentIsMadeOnItem');
         
@@ -163,10 +210,50 @@ class Context
     }
 
     /**
-     * MATCH: /When a comment is deleted on an item/
+     * MATCH: /Where the project ID is "(.*?)"/
+     */
+    public function whereProjectIdIs($payload, $matches)
+    {
+        $this->container->get('logger')->info('HANDLER: whereProjectIdIs');
+
+        // If defined, see if the project ID matches the given ID
+        if (!empty($matches[1])) {
+            if ($this->context['project']->number != $matches[1]){
+                $this->container->get('logger')->info('Project ID does not match', ['id' => $matches[1]]);
+                return false;
+            } else {
+                $this->container->get('logger')->info('Project ID matches', ['id' => $matches[1]]);
+            }
+        }
+        return true;
+    }
+
+    /**
+     * MATCH: /Then set the "(.*?)" field to "(.*?)"/
+     */
+    public function thenSetFieldTo($payload, $matches)
+    {
+        $this->container->get('logger')->info('HANDLER: thenSetFieldTo');
+
+        // We should always have an item from another place...
+        if (empty($this->context['item'])) {
+            throw new \Exception('No item found!');
+        }
+
+        $action = new \App\Action\SetFieldValue($this->container);
+        $action->handle($payload, [
+            'project' => $this->context['project'],
+            'field' => $matches[1],
+            'value' => $matches[2]
+        ]);
+        return true;
+    }
+
+    /**
+     * MATCH: /Given that a comment is deleted on an item/
      * TYPE: issue_comment.deleted
      */
-    public function whenCommentIsDeletedOnItem($payload, $matches)
+    public function givenCommentIsDeletedOnItem($payload, $matches)
     {
         $this->container->get('logger')->info('HANDLER: whenCommentIsDeleted');
 
