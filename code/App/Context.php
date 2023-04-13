@@ -11,8 +11,10 @@ class Context
         'build',
         'getItem',
         'getProject',
-        'buildMatchList'
+        'buildMatchList',
+        'getAllMatches'
     ];
+    protected $matchList = [];
 
     public function __construct($container)
     {
@@ -21,7 +23,8 @@ class Context
     public function build($payload, $content)
     {
         $rc = new \ReflectionClass('App\Context');
-        $matchList = $this->buildMatchList($rc);
+        
+        $matchList = (empty($this->matchList)) ? $this->buildMatchList($rc) : $this->matchList;
         $typeMatch = $this->container->get('event_type').'.'.$this->container->get('action');
 
         // Go through each line and see if there's a a match...
@@ -43,15 +46,15 @@ class Context
                     // Call the matched method and check the result
                     $result = $this->$method($payload, $matches);
                     if ($result == false) { 
-                        $this->container->get('logger')->info('Criteria not passed, failing event');
-                        return false; 
+                        $this->container->get('logger')->info('Criteria not passed, failing event', ['method' => $method]);
+                        return false;
                     }
                     continue 2;
                 } else {
-                    $this->container->get('logger')->info('No match on method', ['method' => $method]);
+                    $this->container->get('logger')->info('NO match on method', ['method' => $method]);
                 }
             }
-            $this->container->get('logger')->info('No match found for line', ['line' => $line]);
+            $this->container->get('logger')->info('NO match found for line', ['line' => $line]);
             return false;
         }
         return true;
@@ -75,6 +78,15 @@ class Context
                 }
             }
         }
+        $this->container->get('logger')->info('Match list built', ['count' => count($matchList)]);
+
+        return $matchList;
+    }
+
+    public function getAllMatches()
+    {
+        $rc = new \ReflectionClass('App\Context');
+        $matchList = (empty($this->matchList)) ? $this->buildMatchList($rc) : $this->matchList;
         return $matchList;
     }
 
