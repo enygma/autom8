@@ -10,3 +10,13 @@ services:
         - "8080:80"
     volumes:
         - ../code:/var/www/html:delegated
+
+  api:
+    image: autom8-api
+    container_name: autom8-api
+    restart: always
+    build: .
+    ports:
+        - "8081:80"
+    volumes:
+        - ../code:/var/www/html:delegated
