@@ -8,6 +8,12 @@
         "aura/session": "^2.1",
         "league/event": "^3.0",
         "guzzlehttp/guzzle": "^7.5",
-        "monolog/monolog": "^3.3"
+        "monolog/monolog": "^3.3",
+        "slim/twig-view": "^3.3",
+        "illuminate/database": "^10.7",
+        "psecio/validation": "^0.5.5",
+        "robmorgan/phinx": "^0.11.7",
+        "doctrine/dbal": "^3.6",
+        "psecio/propauth": "^1.1"
     }
 }
