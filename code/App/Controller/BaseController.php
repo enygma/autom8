@@ -5,6 +5,9 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\RequestInterface;
 use Slim\Routing\RouteContext;
 
+use Slim\Views\Twig;
+use Slim\Views\TwigMiddleware;
+
 class BaseController
 {
     protected $container;
@@ -22,10 +25,11 @@ class BaseController
         return $this->$method($request, $response, $args);
     }
 
-    public function render($template, array $data = [])
+    public function render($request, $template, array $data = [])
     {
+        $view = Twig::fromRequest($request);
         $response = $this->container->get('Slim\Psr7\Response');
-        return $this->container->get('view')->render($response, $template, $data);
+        return $view->render($response, $template, $data);
     }
 
     public function __get($property)
