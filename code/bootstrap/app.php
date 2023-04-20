@@ -5,6 +5,8 @@ use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 use Slim\Views\Twig;
 use Slim\Views\TwigMiddleware;
+use Psr\Http\Message\ServerRequestInterface;
+use Slim\Psr7\Response;
 
 // Set up the autoloader for the App
 spl_autoload_register(function($class) {
@@ -47,16 +49,27 @@ $container->set('logger', function($container) {
     return $logger;
 });
 
-// Initialize the view handler
-// $container->set('view', function($container) {
-//     $view = new \App\View\TemplateView(BASE_DIR.'/templates');
-//     $view['container'] = $container;
+// Define Custom Error Handler
+$customErrorHandler = function (
+    ServerRequestInterface $request,
+    Throwable $exception,
+    bool $displayErrorDetails,
+    bool $logErrors,
+    bool $logErrorDetails,
+    ?LoggerInterface $logger = null
+) use ($app, $container) {
+    $container->get('logger')->error($exception->getMessage());
 
-//     $env = $view->getEnvironment();
-//     $view->addExtension(new \Slim\Views\TwigExtension(
-//         $container['router'],
-//         $container['request']->getUri()
-//     ));
-    
-//     return $view;
-// });
+    $payload = ['error' => $exception->getMessage()];
+
+    $response = $app->getResponseFactory()->createResponse();
+    $response->getBody()->write(
+        json_encode($payload, JSON_UNESCAPED_UNICODE)
+    );
+
+    return $response;
+};
+
+// Add Error Middleware
+$errorMiddleware = $app->addErrorMiddleware(true, true, true);
+$errorMiddleware->setDefaultErrorHandler($customErrorHandler);

@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use Slim\Routing\RouteContext;
+
 class WebhookController extends BaseController
 {
     public function index($request, $response)
@@ -12,6 +14,21 @@ class WebhookController extends BaseController
         $headers = $request->getHeaders();
         // error_log(print_r($headers, true), 3, '/tmp/php.log');
 
+        $id = $this->getArgsFromRequest($request)['id'];
+        var_export($id);
+
+        // Find the matching webhook
+        $webhook = \App\Model\Webhook::where('hash', $id)->first();
+        if ($webhook == null) {
+            throw new \Exception('ERROR: Webhook not found');
+        }
+        // var_export($webhook);
+        var_export($webhook->events);
+
+        if (empty($body)) {
+            throw new \Exception('ERROR: No request body found');
+        }
+
         $payload = json_decode($body['payload']);
         $eventType = $headers['X-Github-Event'][0];
         
@@ -19,20 +36,17 @@ class WebhookController extends BaseController
         $this->container->set('action', $payload->action);
         
         $this->logger->info('Received action', ['type' => $eventType.'.'.$payload->action]);
-        
-        // Parse all of the tests into "contexts" and run the build
-        $testPath = realpath($_ENV['TEST_PATH']);
-        if ($testPath == false) {
-            throw new \Exception('Test path not found: '.$_ENV['TEST_PATH']);
-        }
 
-        $testFiles = glob($testPath.'/*.event');
+        // Build the events from the webhook->events property
         $successCount = 0;
-        
-        foreach ($testFiles as $file) {
-            $this->logger->info("Running event file", ['file' => $file]);
-
-            $contents = file_get_contents($file);
+        foreach ($webhook->events as $event) {
+            $this->logger->info('Running event', ['name' => $event->name]);
+            $contents = '';
+            foreach ($event->matches as $match) {
+                $contents .= $match->pattern."\n";
+            }
+            
+            // Run the event
             $context = new \App\Context($this->container);
             $result = $context->build($payload, $contents);
             
