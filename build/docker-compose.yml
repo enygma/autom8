@@ -20,3 +20,20 @@ services:
         - "8081:80"
     volumes:
         - ../code:/var/www/html:delegated
+
+  mysql:
+      image: mysql
+      container_name: autom8-db
+      command: mysqld --default-authentication-plugin=mysql_native_password --init-file /tmp/init.sql
+      ports:
+        - "3306:3306"
+      expose:
+        - "3306"
+      environment:
+        MYSQL_ROOT_PASSWORD: 123456
+        MYSQL_USER: autom8
+        MYSQL_PASSWORD: autom842
+        MYSQL_DATABASE: autom8
+      volumes:
+        - "../data:/var/lib/mysql"
+        - ./init.sql:/tmp/init.sql
