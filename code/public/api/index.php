@@ -24,6 +24,8 @@ $container = new Container();
 $app = \DI\Bridge\Slim\Bridge::create($container);
 
 require_once CONFIG_DIR.'/app.php';
+require_once CONFIG_DIR.'/api/routes.php';
+
 foreach (new DirectoryIterator(CONFIG_DIR) as $file) {
     if ($file->isDot() || substr($file->getPathname(), -3) !== 'php') { continue; }
     require_once $file->getPathname();

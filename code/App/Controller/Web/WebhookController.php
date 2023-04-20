@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Web;
 
 use Slim\Routing\RouteContext;
 
-class WebhookController extends BaseController
+class WebhookController extends \App\Controller\BaseController
 {
     public function index($request, $response)
     {

@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Web;
 
 use \App\Model\PatternMatch;
 use \App\Model\Webhook;
 use \App\Model\Event;
 
-class IndexController extends BaseController
+class IndexController extends \App\Controller\BaseController
 {
     public function index($request, $response)
     {

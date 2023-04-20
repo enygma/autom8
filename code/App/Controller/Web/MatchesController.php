@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Web;
 
-class MatchesController extends BaseController
+class MatchesController extends \App\Controller\BaseController
 {
     public function index($request, $response)
     {
